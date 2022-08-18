@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="/static/pyscript/pyscript.css"/>
+    <script defer src="/static/pyscript/pyscript.js"></script>
+    <py-config>
+        - autoclose_loader: true
+        - runtimes:
+            -
+                src: "/static/pyodide/pyodide.js"
+                name: pyodide-0.20
+                lang: python
+    </py-config>
+    <py-env>
+        <!-- 라이브러리 명시        -->
+        <!-- - matplotlib -->
+        <!-- 사용할 모듈경로 명시        -->
+        - paths:
+        <!--            - /static/python/client.py-->
+        <!--            - /static/python/weather_api.py-->
+    </py-env>
+    <title>Title</title>
+
+</head>
+<body>
+
+
+<h1 style="color:red">조재성 연습입니다.</h1>
+<py-script>
+    print("Hello World!")
+</py-script>
+<!--명시된 모듈 중 main()으로 실행될  호출 py파일을 지정-->
+<!--<py-script src="/static/python/client.py"></py-script>-->
+</body>
+</html>

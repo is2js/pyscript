@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="/static/pyscript/pyscript.css"/>
+    <script defer src="/static/pyscript/pyscript.js"></script>
+    <link rel="stylesheet" href="./gugu_style.css"/>
+    <py-config>
+        - autoclose_loader: true
+        - runtimes:
+            -
+                src: "/static/pyodide/pyodide.js"
+                name: pyodide-0.20
+                lang: python
+    </py-config>
+</head>
+<body>
+    <!--  함수이용 소스 불러오기  -->
+    <py-script src="./gugu.py"></py-script>
+    <!--  공간만들기.main-box  -->
+    <div class="main-box">
+<!--        ## 로고-->
+<!--        div.logo-circle-->
+        <div class="logo-circle"></div>
+    <!--제목만들기h2.heading-name        -->
+        <h2 class="heading-name">파이스크립트 구구단</h2>
+<!--        인풋만들기-->
+<!--        input#input_dan-->
+<!--        input#input_dan[placeholder="몇단을 출력할까요?"]-->
+        <input type="text" id="input_dan" placeholder="몇단을 출력할까요?">
+<!--        버튼만들기 with 불러온소스 + 그 내부 매개변수받는 함수-->
+        <button id="btn" pys-onClick="gugudan">Click</button>
+<!--        출력될하면은 div안이라도 div로 추가-->
+<!--        div-->
+        <div>
+<!--            출력시 row를 붙일거면, id가진 table태그만 출력-->
+<!--            table#gugu_print-->
+            <div id="gugu_print"></div>
+        </div>
+    </div>
+
+</body>
+</html>

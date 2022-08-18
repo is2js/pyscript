@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>구구단</title>
+    <link rel="stylesheet" href="/static/pyscript/pyscript.css"/>
+    <script defer src="/static/pyscript/pyscript.js"></script>
+    <py-config>
+        - autoclose_loader: true
+        - runtimes:
+            -
+                src: "/static/pyodide/pyodide.js"
+                name: pyodide-0.20
+                lang: python
+    </py-config>
+
+    <py-env>
+        - paths:
+            - gugudan2.py
+    </py-env>
+</head>
+<body>
+
+<!--<py-script>-->
+<!--    #gugudan()-->
+<!--</py-script>-->
+<!--<button id="btn-gugu" pys-onClick="gugudan">클릭</button>-->
+<!--<div id="result-gugu"></div>-->
+<py-script>
+    from gugudan2 import gugudan
+    gugudan(5)
+</py-script>
+<div id="result-gugu"></div>
+<py-script src="./gugudan.py"></py-script>
+<button id="btn-gugu" pys-onClick="gugudan">클릭</button>
+</body>
+</html>

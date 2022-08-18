@@ -1,0 +1,108 @@
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+KR&display=swap");
+body {
+    font-family: "Noto Sans KR", sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.main-box {
+    width: 300px;
+    height: 600px;
+    box-shadow: 0 0 5px 5px bisque;
+    border-radius: 10px;
+
+    text-align: center;
+    padding: 20px;
+}
+
+.heading-name {
+    font-size: 30px;
+    font-weight: bold;
+    /*background: bisque;*/
+    margin: 3px 0;
+
+    background: linear-gradient(to right top, bisque, #a99a87);
+    color:transparent;
+    -webkit-background-clip: text;
+}
+
+#input-dan {
+    border: 2px solid bisque;
+    border-radius: 4px;
+
+    width: 55%;
+    height: 30px;
+
+    padding: 5px 5px;
+    font-size: 15px;
+}
+
+#input-dan::placeholder{
+    color: #a99a87;
+    font-style: italic;
+}
+
+#input_btn {
+    text-decoration: none;
+    background: burlywood;
+    border-radius: 15px;
+    box-shadow: 2px 2px 1px 1px bisque;
+
+    color: white;
+    padding: 5px 8px;
+
+    font-size: 15px;
+}
+
+#input_btn:hover {
+    background: gray;
+    color: white;
+    font-weight: bold;
+}
+
+#result-print {
+    width: 250px;
+    border: 1px solid #ccc;
+
+    margin:10px 10px;
+
+    padding: 0;
+
+    text-align: center;
+
+    border-radius: 10px;
+
+}
+
+#result-print li {
+    line-style: none;
+    background: bisque;
+    border-top: 1px solid #ffffff;
+
+    color: #5e5448;
+    font-size: 15px;
+
+    padding: 1px 20px;
+}
+#result-print li:first-child {
+    background: #5d5b57;
+    color: #ffffff;
+
+    border-radius: 10px 10px 0 0;
+    border:none;
+}
+
+#result-print li:hover {
+    background: #5d5b57;
+    color: #ffffff;
+}
+
+#result-print li:last-child {
+    border-radius: 0 0 10px 10px;
+}

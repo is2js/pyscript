@@ -1,0 +1,122 @@
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+KR&display=swap");
+
+body {
+    font-family: "Noto Sans KR", sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.main-box {
+    box-shadow: 0 0 5px 10px bisque;
+    border-radius: 10px;
+
+    width: 300px;
+    height: 600px;
+
+    text-align: center;
+    padding: 20px 0;
+}
+
+.heading-name {
+    margin: 3px 0;
+    font-size: 30px;
+
+    background: linear-gradient(to right top, #fcdfbc, #5d5b57);
+    color: transparent;
+    -webkit-background-clip: text;
+}
+
+.logo-circle {
+    width: 150px;
+    height: 150px;
+    border: 5px solid bisque;
+
+    border-radius: 50%;
+
+    margin: auto;
+    position: relative;
+
+    background-image: url("./logo.png");
+    background-position: center;
+    background-size: cover;
+}
+
+input {
+    border: 3px solid bisque;
+
+    width: 55%;
+    height: 30px;
+
+    padding: 5px 5px;
+
+    font-size: 15px;
+}
+
+input::placeholder {
+    color: #8d7962;
+    font-style: italic;
+}
+
+#btn {
+    text-decoration: none;
+    background: bisque;
+    color: #5e5448;
+
+    padding: 5px 8px;
+
+    border-radius: 20px;
+
+    box-shadow: 2px 2px 1px 1px #9a8974;
+}
+
+#btn:hover {
+    background: #5d5b57;
+    color: #fff;
+    font-weight: 600;
+}
+
+#gugu_print {
+    width: 250px;
+    border: 1px solid #ccc;
+
+    /*margin: 10px;*/
+    margin: 10px auto;
+
+    border-radius: 10px 10px 0 0;
+
+    padding: 0;
+
+    text-align: center;
+}
+
+li {
+    line-style: none;
+    background: #fcdfbc;
+
+    border-top: 1px solid #ccc;
+
+    color: #5e5448;
+    font-size: 18px;
+
+    padding: 1px 20px
+}
+
+li:first-child {
+    background: #8d7962;
+    color: white;
+
+    border-radius: 10px 10px 0 0;
+
+    border: none;
+}
+
+li:hover {
+    background: #8d7962;
+    color: white;
+}

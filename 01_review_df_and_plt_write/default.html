@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="/static/pyscript/pyscript.css"/>
+    <script defer src="/static/pyscript/pyscript.js"></script>
+    <py-config>
+        - autoclose_loader: true
+        - runtimes:
+            -
+                src: "/static/pyodide/pyodide.js"
+                name: pyodide-0.20
+                lang: python
+    </py-config>
+    <!-- 메모리에 띄울 라이브러리 명시 -->
+    <!-- 라이브러리 명시        -->
+    <!-- - matplotlib -->
+    <!-- 로컬파일 명시-->
+    <!--    - paths:-->
+    <!--        - /data/pokemon.csv-->
+    <!--        - /static/python/client.py-->
+    <!--        - /static/python/weather_api.py-->
+    <py-env>
+        - pandas
+        - matplotlib
+        - paths:
+            - /data/pokemon.csv
+    </py-env>
+    <title>Title</title>
+    <style>
+        .dataframe th, td{
+            padding: 5px;
+            border:1px solid silver;
+        }
+        .dataframe tr:nth-child(even) {
+            background: #e0e0e0;
+        }
+        .dataframe tr:hover {
+            background: #e2a3a3;
+            cursor:pointer;
+        }
+    </style>
+</head>
+<body>
+
+
+<h1 style="color:red">조재성 연습입니다.</h1>
+<div id="df-output"></div>
+<div id="pie-output"></div>
+<div id='line-output'></div>
+<h2>그래프입니다.</h2>
+<py-script>
+    import pandas as pd
+    import matplotlib.pyplot as plt
+
+    # 데이터 프레임
+    data_frame = pd.read_csv('pokemon.csv')
+    pyscript.write('df-output', data_frame.head().to_html(classes='df-style'))
+
+    # pie plot
+    type_counts = data_frame['Type 1'].value_counts()
+    plt.title('Pokemon Type')
+    plt.pie(type_counts.values, labels=type_counts.index, autopct='%1.1f%%')
+
+    fig = plt.gcf()
+    fig.set_size_inches([10, 8])
+
+    pyscript.write('pie-output', plt)
+
+    # line plot
+    gen_type_count = data_frame.groupby(['Generation', 'Type 1'])['Total'].count().reset_index()
+    gen_type_count = gen_type_count.pivot('Generation', 'Type 1', 'Total')
+    gen_type_count.plot(marker='o')
+    # pyscript.write('line-output', plt)
+    plt.legend(loc=[0.8, 0.3])
+    pyscript.write('line-output', plt)
+
+</py-script>
+<!-- py-env에서 메모리에 띄운 py파일 중 실행 모듈 명시-->
+<!--<py-script src="/static/python/client.py"></py-script>-->
+</body>
+</html>

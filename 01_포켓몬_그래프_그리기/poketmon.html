@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script defer src="https://pyscript.net/alpha/pyscript.js"></script>
+    <style>
+        .df-style td, th {
+            padding: 5px;
+            border: 1px solid silver;
+        }
+        .df-style tr:nth-child(even){
+            background: #e0e0e0;
+        }
+        .df-style tr:hover {
+            background: #e2a3a3;
+            cursor:pointer;
+        }
+    </style>
+    <py-env>
+        - pandas
+        - matplotlib
+        - paths:
+            - /data/pokemon.csv
+    </py-env>
+    <title>My Pokemon Data</title>
+</head>
+<body>
+<py-script>
+    import pandas as pd
+    from pyodide.http import open_url
+
+    csv_url = 'https://raw.githubusercontent.com/KarlWithK/pokemon-csv/master/pokemon.csv'
+    # with open('../data/pokemon.csv', 'rb') as file:
+    # df = pd.read_csv(file)
+    # df = pd.read_csv(open_url(csv_url))
+    df = pd.read_csv('pokemon.csv')
+
+    # print(df.head())
+    # pyscript.write('data', df)
+    # pyscript.write('data', df.head(10))
+    pyscript.write('data', df.head(10).to_html(classes="df-style"))
+
+    import matplotlib.pyplot as plt
+
+    type_counts = df['Type 1'].value_counts()
+    plt.title("Pokemon Type")
+    plt.pie(type_counts.values, labels=type_counts.index, autopct='%1.1f%%')
+    plt
+
+    gen_type = df.groupby(['Generation', 'Type 1']).count().reset_index()
+    # pyscript.write('gen_type', gen_type)
+    gen_type = gen_type[['Generation', 'Type 1', 'Total']]
+    gen_type = gen_type.pivot('Generation', 'Type 1', 'Total')
+    gen_type.plot(marker='o')
+
+    plt.legend(loc=[0.8, 0.3]) # next
+
+    fig =plt.gcf()
+
+    fig.set_size_inches([10, 8]) # next
+
+    fig
+
+
+</py-script>
+    <div id="data">d</div>
+<!--    <div id="gen_type">d</div>-->
+
+</body>
+</html>

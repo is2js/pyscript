@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>구구단</title>
+    <link rel="stylesheet" href="/static/pyscript/pyscript.css"/>
+    <script defer src="/static/pyscript/pyscript.js"></script>
+    <link rel="stylesheet" href="./style.css"/>
+    <py-config>
+        - autoclose_loader: true
+        - runtimes:
+            -
+                src: "/static/pyodide/pyodide.js"
+                name: pyodide-0.20
+                lang: python
+    </py-config>
+</head>
+<body>
+    <py-script src="./gugudan_module.py"></py-script>
+    <div class="main-box">
+        <h2 class="heading-name">PyScript 축의금</h2>
+        <input type="text" id="input-dan" placeholder="몇단을 출력할까요?">
+        <button id="input_btn" pys-onClick="calculator">클릭</button>
+        <div id="result-print"></div>
+    </div>
+</body>
+</html>
