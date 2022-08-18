@@ -816,3 +816,25 @@ https://www.youtube.com/channel/UCVnN37gEkdZ62mouxpN_3Mw/videos
 }
 ```
 
+
+
+#### div.logo-circle(배경으로 그림채운다): 가로세로+선+곡선50%-> margin:auto + 포지션relative -> background-image:url("")/position:center/size:cover
+
+```css
+.logo-circle {
+    width: 150px;
+    height: 150px;
+    border: 5px solid bisque;
+    border-radius: 50%;
+
+    margin: auto;
+    position: relative;
+
+    background-image: url("./logo.png");
+    background-position: center;
+    background-size: cover;
+}
+```
+
+
+
