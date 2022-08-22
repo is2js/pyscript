@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="/static/pyscript/pyscript.css"/>
+    <link rel="stylesheet" href="./image_blend.css"/>
+    <script defer src="/static/pyscript/pyscript.js"></script>
+    <py-config>
+        - autoclose_loader: true
+        - runtimes:
+            -
+                src: "/static/pyodide/pyodide.js"
+                name: pyodide-0.20
+                lang: python
+    </py-config>
+    <py-env>
+        - Pillow
+    </py-env>
+    <title>PyScript Image Blend</title>
+    <py-script src="./image_blend.py"></py-script>
+</head>
+<body>
+<h1 class="text-white fold-bold text-center text-3xlg">이미지 합성 하기</h1>
+<div id="card1" class="card">
+    <div class="title">첫번쨰 이미지</div>
+    <div id="my_image1" class="my_image"></div>
+    <div class="features">이미지 파일을 올려주세요</div>
+    <input type="file" class="btn" id="file_upload1">
+</div>
+<div id="card2" class="card">
+    <div class="title">두번째 이미지</div>
+    <div id="my_image2" class="my_image"></div>
+    <div class="features">이미지 파일을 올려주세요</div>
+    <input type="file" class="btn" id="file_upload2">
+</div>
+<div id="card3" class="card">
+    <div class="title">결과 이미지</div>
+    <div id="my_image3" class="my_image"></div>
+    <div class="features">합성 결과를 보여줍니다</div>
+    <input type="range" id="my_range" min="0" max="100" value="50">
+<!--    <button id="btn1" pys-onClick="image_blend">Click Me!</button>-->
+</div>
+
+<py-script>
+</py-script>
+<!-- py-env에서 메모리에 띄운 py파일 중 실행 모듈 명시-->
+<!--<py-script src="/static/python/client.py"></py-script>-->
+</body>
+</html>

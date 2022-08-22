@@ -258,14 +258,16 @@ data_frame.to_html(classes='df-style')
    ![image-20220810010901544](https://raw.githubusercontent.com/is3js/screenshots/main/image-20220810010901544.png)
 
 2. py-script의 src로 불러읽고 -> 그 밑으로 py-onClick등 파이스크립트전용함수에서 e파라미터를 받는 메서드를 연결한다.
-   ![image-20220810011026457](https://raw.githubusercontent.com/is3js/screenshots/main/image-20220810011026457.png)
+   
+   - 원래는 head 맨 아래에 걸어줘야하는 듯??
+     ![image-20220810011026457](https://raw.githubusercontent.com/is3js/screenshots/main/image-20220810011026457.png)
 
 #### py-script태그 내부 import해서 사용
 
-1. e파라미터 없이 python기본사용의 메서드로 정의한다.
+1. e파라미터 없이 python기본사용의 메서드로 정의한다. python파일은..
    ![image-20220810011053926](https://raw.githubusercontent.com/is3js/screenshots/main/image-20220810011053926.png)
 
-2. py-env에서 모듈을 메모리에 올려준다.
+2. py-env에서 `로컬모듈`을 메모리에 올려준다.
    ![image-20220810011115400](https://raw.githubusercontent.com/is3js/screenshots/main/image-20220810011115400.png)
 3. py-script에서 from 모듈 import 메서드로 python처럼 사용한다.
    ![image-20220810011145569](https://raw.githubusercontent.com/is3js/screenshots/main/image-20220810011145569.png)
@@ -838,3 +840,171 @@ https://www.youtube.com/channel/UCVnN37gEkdZ62mouxpN_3Mw/videos
 
 
 
+## 05 이미지 합성
+
+1. `h1`의 제목 텍스트를 pyscript.css 속성을 이용해서 설정할 수 있다.
+
+   `h1.text-white.fold-bold.text-center.text-3xlg{이미지 합성 하기}`
+
+2. id를 준 .card안에
+
+   1. `.title{}`
+
+   2. id를 준 div.my_image 2개의 공간을 생성한다.
+
+      ```
+      div#card1.card>div.title{첫번재 이미지}+div#my_image1.my_image
+      ```
+
+    3. 추가로 설명을 적을 `.features`와
+
+    4. `input.btn` + type="file", id="file_upload1"로 구성하게 한다.
+
+       ```
+       div.features{이미지 파일을 올려주세요}
+       input.btn[type="file"][id="file_upload1"]
+       ```
+
+3. id준 card를 3개로 복사해서 id값들을 바꿔준다.
+
+4. 3번째 결과 카드는, 기존 input file을 지우고
+
+   1. input#my_range아이디로 `type="range"` 민 ="0" 맥스="100"으로 준다.value="50"으로 가운데 위치시킨다.
+
+   ```
+   input#my_range[type="range",min="0",max="100",value="50"]
+   ```
+
+   2. 리스너를 달고 있는 btn을 추가한다.
+
+   ```
+   btn#btn1[pys-onClick="image_blend"]{Click Me!}
+   ```
+
+```html
+<h1 class="text-white fold-bold text-center text-3xlg">이미지 합성 하기</h1>
+<div id="card1" class="card">
+    <div class="title">첫번쨰 이미지</div>
+    <div id="my_image1" class="my_image"></div>
+    <div class="features">이미지 파일을 올려주세요</div>
+    <input type="file" class="btn" id="file_upload1">
+</div>
+<div id="card2" class="card">
+    <div class="title">두번째 이미지</div>
+    <div id="my_image2" class="my_image"></div>
+    <div class="features">이미지 파일을 올려주세요</div>
+    <input type="file" class="btn" id="file_upload2">
+</div>
+<div id="card3" class="card">
+    <div class="title">결과 이미지</div>
+    <div id="my_image3" class="my_image"></div>
+    <div class="features">합성 결과를 보여줍니다</div>
+    <input type="range" id="my_range" min="0" max="100" value="50">
+    <button id="btn1" pys-onClick="image_blend">Click Me!</button>
+</div>
+```
+
+
+
+### css꾸미기
+
+- image_blend.css를 만들고 링크를 건다
+
+1. body에 배경을 주고
+2. .card에 배경 +box-shadow + 곡선 + 마진을 준다..
+
+```css
+body {
+    background-color: #383838;
+}
+
+.card {
+    background-color: #2b2a2a;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+    border-radius: 5px;
+
+    margin: 50px 20px 20px 20px;
+
+    /*한줄로 만들기 전에 각각을 33% - @ 로 만들어놓기*/
+    width: calc(33.3333% - 40px);
+    padding: 20px;
+
+    text-align: center;
+    color: white;
+    /*block요소들을 왼쪽정렬하며 한줄로 만들기*/
+    float: left;
+}
+
+.title {
+    font-size: 25px;
+}
+
+.my_image {
+    margin: 50px 0;
+}
+
+/*이미지 들어갈 곳의 확장자로.. px을?*/
+.my_image svg {
+    width: 100px;
+    height: 100px;
+}
+
+.features {
+    margin: 10px 0;
+    font-size: 14px;
+}
+
+/*input에 붙여준 btn속성*/
+.btn {
+    display: block;
+}
+/* 결과 버튼 */
+button {
+    align-items: center;
+    background-color: cyan;
+    border-radius: 20px;
+
+    color: white;
+    padding: 5px 10px;
+    box-shadow: 2px 2px 1px 1px rgba(70, 244, 151, 0.65);
+}
+
+button:hover {
+    color: purple;
+    background-color: white;
+    font-weight: 600;
+}
+```
+
+### pyscript 작성
+
+1. pillow를 갖다 쓰기 위해, head에  **import해서 쓸 모듈인**`py-env에  - Pillow`를 걸어준다
+
+   - pyscript에 포함된 기본라이브러리는 `paths:`없이 걸어주면 된다.
+   - 로컬모듈은 `paths: `아래 인덴트 걸어서 적어줘야한다.
+
+   ```html
+   <py-env>
+       - Pillow
+   </py-env>
+   ```
+
+2. 마찬가지로 head에 `py-script`로 **pys-onClick 등 이벤트메서드들로 쓸 모듈들은 `py-script에 src로 `걸어준다**
+
+   - 먼저 경로에 모듈을 만들고, 아래와 같이 head에 걸어준다.
+
+     ![image-20220822191851119](https://raw.githubusercontent.com/is3js/screenshots/main/image-20220822191851119.png)
+
+   ```html
+   <py-script src="./image_blend.py"></py-script>
+   ```
+
+
+
+
+
+#### file타입 input을 눌렀을 때, 업로드 후 보여주는 부분 작성
+
+1. pys-onChange가 없는 것 같다
+2. python모듈을 onChange를 addEventListener("change", )로 걸어야하는데
+3. js element에 pys-가 아니라 직접 걸 때는 `from pyodide import create_proxy`를 한번 씌워서 걸어줘야한다.

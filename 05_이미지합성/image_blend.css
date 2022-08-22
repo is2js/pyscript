@@ -1,0 +1,60 @@
+body {
+    background-color: #383838;
+}
+
+.card {
+    background-color: #2b2a2a;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+    border-radius: 5px;
+
+    margin: 50px 20px 20px 20px;
+
+    /*한줄로 만들기 전에 각각을 33% - @ 로 만들어놓기*/
+    width: calc(33.3333% - 40px);
+    padding: 20px;
+
+    text-align: center;
+    color: white;
+    /*block요소들을 왼쪽정렬하며 한줄로 만들기*/
+    float: left;
+}
+
+.title {
+    font-size: 25px;
+}
+
+.my_image {
+    margin: 50px 0;
+}
+
+/*이미지 들어갈 곳의 확장자로.. px을?*/
+.my_image svg {
+    width: 100px;
+    height: 100px;
+}
+
+.features {
+    margin: 10px 0;
+    font-size: 14px;
+}
+
+/*input에 붙여준 btn속성*/
+.btn {
+    display: block;
+}
+/* 결과 버튼 */
+button {
+    align-items: center;
+    background-color: cyan;
+    border-radius: 20px;
+
+    color: white;
+    padding: 5px 10px;
+    box-shadow: 2px 2px 1px 1px rgba(70, 244, 151, 0.65);
+}
+
+button:hover {
+    color: purple;
+    background-color: white;
+    font-weight: 600;
+}
