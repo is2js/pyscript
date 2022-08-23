@@ -976,6 +976,8 @@ button:hover {
 }
 ```
 
+
+
 ### pyscript 작성
 
 1. pillow를 갖다 쓰기 위해, head에  **import해서 쓸 모듈인**`py-env에  - Pillow`를 걸어준다
@@ -1007,4 +1009,4 @@ button:hover {
 
 1. pys-onChange가 없는 것 같다
 2. python모듈을 onChange를 addEventListener("change", )로 걸어야하는데
-3. js element에 pys-가 아니라 직접 걸 때는 `from pyodide import create_proxy`를 한번 씌워서 걸어줘야한다.
+3. js element에 html속 pys-가 아니라 **직접 걸 때는 `from pyodide import create_proxy`를 한번 씌워서 js 이벤트 리스너의 함수자리에** 걸어줘야한다.
