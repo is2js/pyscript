@@ -838,6 +838,46 @@ https://www.youtube.com/channel/UCVnN37gEkdZ62mouxpN_3Mw/videos
 }
 ```
 
+### 엔터로 click누르기
+
+1. calculator 모듈을 만든 곳에서, input 태그를 잡은 변수에다가 **.element.onkeypress = gugudan**을 같이 연결해준다.
+
+   - input에 onclick뿐만 아니라 onkeypress도 연결되었다는 말
+
+2. onkeypress는 **enter이외에 아무키나 눌러도 작동하게 되므로 에러를 포**함하고 있다.
+
+   ![image-20220825130259125](https://raw.githubusercontent.com/is3js/screenshots/main/image-20220825130259125.png)
+
+   1.  enter만 인식하게 하려면 if enter의 keycode일때만 작동하도록 해야한다.
+   2. **감싸주는 함수를 하나더 만들어서, if enter키일때만... gugudan함수를 실행하도록 포장한다**
+
+3. **먼저 key_press함수를 작성하고, onkeypress에서 걸어주되, `e.keyCode`를 통해 `눌러지는 키의 code값을 확인`한다**
+
+   ![image-20220825130357369](https://raw.githubusercontent.com/is3js/screenshots/main/image-20220825130357369.png)
+
+   - enter를입력하면 e.keyCode는  13이라는 아스키코드를 출력한다
+
+     ![image-20220825130452334](https://raw.githubusercontent.com/is3js/screenshots/main/image-20220825130452334.png)\
+
+   - **key_press온 e.keyCode값이 13일때만 gugudan함수를 실행해주도록 하면된다.**
+
+     - **on함수에서 on함수를 실행시킬 땐, 해당e코드를 인자로 그대로 넘겨주면 된다.**
+
+     ![image-20220825130629583](https://raw.githubusercontent.com/is3js/screenshots/main/image-20220825130629583.png)
+
+
+
+#### 숫자 검증 by try~except with placerholder
+
+![image-20220825132442418](https://raw.githubusercontent.com/is3js/screenshots/main/image-20220825132442418.png)
+
+1. 에러가 발생할 곳에 try로 감싼다
+2. **placeholder로 에러문을 출력하기 위해서는**
+   1. **input창을 빈칸으로 만들고**
+   2. placholder 메세지를 수정하고
+   3. **포커스를 input창으로 준다**
+   4. **return통해, 아래과정은 안일어나게 만든다.**
+
 
 
 ## 05 이미지 합성
