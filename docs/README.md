@@ -1016,6 +1016,8 @@ button:hover {
 }
 ```
 
+
+
 ### pyscript 작성
 
 1. pillow를 갖다 쓰기 위해, head에  **import해서 쓸 모듈인**`py-env에  - Pillow`를 걸어준다
@@ -1047,4 +1049,102 @@ button:hover {
 
 1. pys-onChange가 없는 것 같다
 2. python모듈을 onChange를 addEventListener("change", )로 걸어야하는데
-3. js element에 pys-가 아니라 직접 걸 때는 `from pyodide import create_proxy`를 한번 씌워서 걸어줘야한다.
+3. js element에 html속 **pys-가 아니라 파이썬메서드를 html태그 생성후 + js이벤트리스너에 직접 걸 때는 `from pyodide import create_proxy`를 한번 씌워서 js 이벤트 리스너의 함수자리에** 걸어줘야한다.
+4. **그렇다면, 모듈내에서 `(1)python모듈정의 -> (2) creat_proxy import -> (3) 모듈내 전역변수로 씌우기 -> (4) 모듈내 전역으로 html태그찾기 -> (4) 태그에 이벤트리스너걸기`의 과정을 모두 python모듈내에서 이루어져야한다.**
+    - 검색해보니, pys-on이 존재하더라도 setAttribute로 동적으로 생성태그에 추가가안되는 것 같다. create_proxy에 씌워서 이벤트리스너로 add해줘야한다.
+
+
+
+#### 2번째 file input(#file_upload2)에도 똑같은 리스너를 달려면?
+
+1. 현재 이벤트리스너에 들어갈 메서드는 `이미지가 들어갈 공간의 id`를 찾아서 넣으므로, 2번째 file input에 적용안되는 상황이다.
+
+    - img가 들어갈 공간의 #id를 파라미터로 빼고, 리스너 달때 e제외 새로운 인자로 id를 주면 될 것 같은데
+    - **이벤트리스너로 넘어가는 메서드는 e이외에 파라미터를 가질 수 없다?!**
+
+2. **이럴 때 이용하는 것이, `id로 찾지말고, 같은종류면 달고 있는 class로 찾기`이다.**
+
+    1. #card1 .card
+        1. #my_imadge1 .**my_lmage**
+        2. input #file_upload1
+
+    2. #card2 .card
+        1. #my_imadge1 .**my_lmage**
+        2. input #file_upload2
+
+3. `e.target` (각각의 file input#fild_upload1,2,3..) -> `.parentNode` -> `.getElementsByClassName("공통 클래스") [0]` -> `.id`
+
+    - **각각의 card에는 1개의 요소만 존재하지만, `ClassName으로 요소를 찾으면 복수라서 [0]`를 달아준다**
+
+        - 기존
+            ![image-20220824132815272](https://raw.githubusercontent.com/is2js/screenshots/main/image-20220824132815272.png)
+
+        - id로 1개 요소가 아닌, 부모로 갔다가 공통class로 찾아서, 각각의 해당하는 요소를 찾게 만들기
+
+            ![image-20220824133045997](https://raw.githubusercontent.com/is2js/screenshots/main/image-20220824133045997.png)
+
+4. **추가로 다시 클릭했을 때, `추가할 빈공간의 자식들을 지우고, 거기에 추가`하도록 id가 아닌 태그로 받은 뒤, `첫번째 자식이 존재할때까지 계속 삭제`해서 자식이 존재안할때까지 삭제한다**
+
+    ![image-20220824134039143](https://raw.githubusercontent.com/is2js/screenshots/main/image-20220824134039143.png)
+
+
+
+
+
+
+
+#### 전역변수 dict에 2개이 그림 파일을 값으로 저장해놓고, 합성클릭시 blend하기
+
+1. 필로우의 Image.open()으로 js파일객체를 그대로 쓰면 에러가난다
+    1. `from PIL import Image` 모듈의 open을 써도 에러가난다
+    2. **js파일객체 -> byte list로 바꾼 뒤 -**> python의 PIL에서 사용할 수 있다.
+
+2. **js의 Uint8Array.new()를 이용해서, `인메모리 byte 스트림으로 변경`한 뒤, Image.open()에 넣어줘야한다.**
+
+    1. html file객체를 **.arrayBuffer**()로 어레이퍼버를 만들고, 
+    2. 버퍼를 **js용 Unit8Array**에 담아서, **js용 어레이버퍼**를 만든다.
+    3. python의 내장 **bytearray**()를 통해 b''의 **바이트 배열**로 만든다.
+    4. io의 **io.BytesIO()**를 이용해서, f = open()과 같은 역할로서 바이트배열 -> **인메모리 바이트 스트림**으로 만든다.
+    5. 인메모리 바이트 스트림을 **PIL의 Image.open()으로 연다**
+
+3. **비동기식으로 처리해야한다는 에러가 난다.**
+
+    - .arrayBuffer()를 만들 때 `await` -> 메서드에는 `async`를 앞에 붙여줘야한다.
+
+    ![image-20220824145405149](https://raw.githubusercontent.com/is2js/screenshots/main/image-20220824145405149.png)
+
+4. **각 file input마다 `PIL이 Image.open()`으로 열어둔 이미지 정보를 `id를 key로하는 전역변수 map`에 저장해놓고, 나중에 합성할 때 꺼내 쓸 수 있게 한다.**
+
+    ![image-20220824150738812](https://raw.githubusercontent.com/is2js/screenshots/main/image-20220824150738812.png)
+
+
+
+
+
+
+
+#### dict에 저장된 이미지를 꺼내서 합성하기
+
+1. 일단 합성 전에 이미지 크기를 통일 시킨다.
+
+    1. 첫번째 사이즈대로 resize하기
+
+2. slider값을 가져와서 / 100 후 0~1 ㄱ비율대로 합성하기
+
+3. **jpg는 혼자 저장mode가 PIL RGBA -> png는 다 RGB mode**
+
+    1. 각 이미지 dict에 저장 전에, .mode가 RGB(png)가 아니면 convert해주는 코드 추가
+
+4. **.blend의 결과인 `PIL객체` -> `byte stream`-> ... -> 다시  `js용 File객체`로 변경해야한다.**
+
+    1. byte steram을 담을 빈 io.ByteIO()를 만들고
+    2. PIL객체.save() + foramt지정해서 byte steram으로 만들고
+        1. **인메모리 파일이 io.BytesIO로 만든.. byte stream인가보다?!**
+        2. 파일명을 저장하는 곳에 인메모리 빈 stream이 이용된다.
+    3. byte steram에서 geValue()한 것을 Unit8Array로 만들고
+    4. Unit8Array를 파일명 + 타입등으로  File객체로 만들어주면된다
+
+5. 만들어진 js File객체를, 기존에img태그 만들어서 올리는 것처럼 복사해서 img태그를 append해준다.
+
+    
+
