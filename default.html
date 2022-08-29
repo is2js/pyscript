@@ -12,7 +12,7 @@
                 name: pyodide-0.20
                 lang: python
     </py-config>
-    <!-- 메모리에 띄울 라이브러리 명시 -->
+    <!-- import하여 py-script에 쓰기 위한, 메모리에 띄울 라이브러리 명시 -->
     <!-- 라이브러리 명시        -->
     <!-- - matplotlib -->
     <!-- 로컬파일 명시-->
@@ -21,18 +21,19 @@
     <!--        - /static/python/client.py-->
     <!--        - /static/python/weather_api.py-->
     <py-env>
-        - pandas
-        - matplotlib
-        - paths:
-            - /data/pokemon.csv
     </py-env>
+    <!--  js처럼, [e용 함수들] + [기본함수 저의 -> 미리 실행] 모듈들 명시  -->
+    <!--    <py-script src="abc.py"></py-script>-->
+</head>
     <title>Title</title>
+
 </head>
 <body>
 
 
 <h1 style="color:red">조재성 연습입니다.</h1>
 <py-script>
+    print("Hello World!")
 </py-script>
 <!-- py-env에서 메모리에 띄운 py파일 중 실행 모듈 명시-->
 <!--<py-script src="/static/python/client.py"></py-script>-->

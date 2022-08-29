@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="/static/pyscript/pyscript.css"/>
+    <script defer src="/static/pyscript/pyscript.js"></script>
+    <py-config>
+        - autoclose_loader: true
+        - runtimes:
+            -
+                src: "/static/pyodide/pyodide.js"
+                name: pyodide-0.20
+                lang: python
+    </py-config>
+    <!--  js처럼, [e용 함수들] + [기본함수 저의 -> 미리 실행] 모듈들 명시  -->
+    <py-script src="./tictactoe.py"></py-script>
+    <link rel="stylesheet" href="./tictactoe.css">
+    <title>PyScript TickTacToe !</title>
+</head>
+<body>
+    <div class="m-auto text-center font-bold text-3xl">
+        <h1 id="header">Pyscript TicTacToe!</h1>
+        <table id="my_table"></table>
+    </div>
+</body>
+</html>

@@ -1148,3 +1148,233 @@ button:hover {
 
     
 
+## 06 틱택톡
+
+- 2player까지 만들고 난 뒤 -> minmax알고리즘으로 1player vs computer가 가능하다
+- 오목의 축소판이다.
+
+
+
+### 3개의 파일부터 만들고, html에 걸어주기
+
+- `tictactoe`html, css, py
+
+  ![image-20220829114222236](https://raw.githubusercontent.com/is3js/screenshots/main/image-20220829114222236.png)
+
+
+
+### html 및 css, py 파일 만들기 세팅
+
+1. 제일 바깥 공간 만들기
+
+   - **pyscript의 css이용**
+
+   `div.m-auto.text-center.font-bold.text-3xl`
+
+2.  h1#header과 테이블#my_table 만들기
+
+   `h1#header{Pyscript TicTacToe!}`
+
+   1. **테이블을 html로 만드는게 좋으나, 학습을 위해 pyscript로 동적 생성할 예정 -> `table#my_table`로 제일 바깥 테이블태그만 만들어놓는다.**
+
+   `table#my_table`
+
+   
+
+### pyscript 모듈에 e메서드이외에 init_function()로 동적 table + td마다 클릭리스너 달기
+
+1. pyscript모듈에서는, **e함수이외에 `init_함수() 실행과 동시에 정의`해서, 홈페이지 시작시 작동할 모듈들도 정의할 수 있다.**
+2. 최상단에 table태그를 잡아놓고 **init함수를 호출하면서 동시에 정의한다**
+   1. row만큼 반복문을 돌면서 tr태그를 생성하고
+   2. 내부에서 col만큼 반복문을 돌면서 td태그를 생성하되
+      1. `td.id = `로 아이디를 부여하여, 클릭될 수 있게 한다.
+         - `row * 열 수(구간별갯수) + col`을 이용하면 0부터 시작하는 값을 연속적으로 행렬을 채울 수 있다.
+      2. 보이기용으로 O와 X를 집어넣고
+      3. **생성된 각 td태그마다 addEventListener로 `click_cell` e함수를 달아준다.**
+         - python모듈을 js문법에 이벤트리스너로 넣어줄 땐 **create_proxy()를 씌워서 넣어준다**
+      4. td태그를 tr에 , tr태그는 table태그에 appendChild한다.
+
+```python
+from js import document
+from pyodide import create_proxy
+
+# 8. tr들을 달 table은 모듈내 전역변수로서 먼저 실행되게해서 잡아준다.
+my_table = document.getElementById('my_table')
+
+
+def click_cell(e):
+    pass
+
+
+def init_game():
+    # 2. 3by3을 만들 기 위해 tr3개를 createElement한다.
+    for i in range(3):
+        tr = document.createElement('tr')
+        # 3. 각 tr에다가 3개의 열을 td로 만들어준다.
+        # -> 각각을 컨트롤하기 위해 td도 심어놔야한다. .id 로 id속성을 부여한다.
+        for j in range(3):
+            td = document.createElement('td')
+            # 4. 이중반복문 내부에서는 row_index * 열수 + col_index로 0부터 연속적인 처리를 할 수 있다.
+            # -> 2차원을 1차원으로 id를 0부터 부여한다.
+            td.id = f'{i * 3 + j}'
+
+            # 9. 내용확인용으로 id가 5보다 작은 것은 O 크면 X를 넣어준다.
+            if int(td.id) < 5:
+                td.innerHTML = 'O'
+            else:
+                td.innerHTML = 'X'
+
+            # 5. 생성element는 addEventListener를 create_proxy()를 입혀서 python e함수를 배정한다
+            # -> 각 td마다 작동할 이벤트listener를 달아준다.
+            td.addEventListener('click', create_proxy(click_cell))
+            # 6. row별 tr에  반복문속 td들을 append한다.
+            tr.appendChild(td)
+        # 7. td들이 달린 tr들을 table에 append한다.
+        my_table.appendChild(tr)
+
+# 1. e모듈 정의처럼, 미리 실행되어야할 함수들을 [정의 후 실행까지] 시킨다.
+init_game()
+
+```
+
+
+
+
+
+### css 꾸미기
+
+#### body: 배경+box-sizing기준+마0패0 -> flex -> 가운데정렬 , 높이도 가운데정렬+height:100vh로 내용물을 화면가운데로 몰기
+
+```css
+body {
+    background-color: whitesmoke;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+    height: 100vh;
+}
+```
+
+#### table: 배경+좌우마진auto로 가운데정렬
+
+```css
+#my_table {
+    border: 1px solid black;
+    margin-left: auto;
+    margin-right: auto;
+}
+```
+
+
+
+#### td: 배경+보더(table과동일) -> 가로세로동일+margin조금 -> 글자크기 가로세로보다 조금작게 + 굵기 +  텍스트가운데정렬
+
+```css
+td {
+    background-color: lightgoldenrodyellow;
+    border: 1px solid black;
+
+    width: 100px;
+    height: 100px;
+    margin: 1px;
+
+    font-size: 80px;
+    text-align: center;
+    font-weight: bold;
+}
+```
+
+
+
+### 2명의 turn체계 만들기(클릭마다 턴 돌아가기)
+
+#### 클릭시 순서대로 player1이면 O, player2턴이면 X가 입력되도록 해야한다.
+
+1. 어차피 1명이 먼저 출발이니, player1을 default값으로 선택하여 **turn변수(불린flag)를 전역변수로 선언**한다.
+
+   ```python
+   # 10. 턴을 위한 전역변수 설정 (각 플레이어turn마다 사용될 문자열들 + turn 불린flag변수)
+   player1_mark = 'O'
+   player2_mark = 'X'
+   is_player1 = True # player1부터 True로 시작된다.
+   ```
+
+   
+
+2. td의 클릭리스너(click_cell)은 **클릭시 `e.target.id`로 배정된 id를 받아오게 한다**
+
+   - id를 알아와야 **찾아서 해당player의 text를 심을 수 있다.**
+
+   ```python
+   def click_cell(e):
+       # 11. 클릭된 td의 id값을 받아온다. -> 셀의 클릭여부를 알고서, 클릭안된(방문안된) 것만 클릭되게 해야한다.
+       # -> html로만 이루어진다면, class를 심어놓는 등의 작업을 할 수 있다.
+       cell_id = int(e.target.id)
+   ```
+
+3. **html로 뿌려지는 행렬을 -> id는 1차원으로 관리**하는 중이므로 **`방문 상태배열`을 도입하고, 체킹하면서, `방문안한 cell만 클릭 + 현재turn의 문자열을 심어지도록` 해야한다**
+
+   - 1차원으로 0부터 관리되는 id를 **방문배열 board을 도입한다.**
+
+   ```python
+   # 12. 2차원행렬의 id를 1차원으로 관리하여,
+   #    -> 방문 상태배열을 선언해서 사용할 수 있다.(객체라면 각 셀마다 객체로 관리)
+   board = [False] * 9
+   
+   def click_cell(e):
+       # 11. 클릭된 td의 id값을 받아온다. -> 셀의 클릭여부를 알고서, 클릭안된(방문안된) 것만 클릭되게 해야한다.
+       # -> html로만 이루어진다면, class를 심어놓는 등의 작업을 할 수 있다.
+       cell_id = int(e.target.id)
+       
+       # 13. 방문안된 cell일 경우, 현재의 turn에 해당하는 텍스트를 심고, 턴을 바꿔야한다.
+       if not board[cell_id]:
+           mark_cell(cell_id, is_player1)
+   ```
+
+4. mark_cell을 통해, 현재td에 현재turn의 문자열을 입력하자
+
+   ```python
+   def mark_cell(cell_id, is_player1):
+       # 14. 현재cell_id의 td를 찾아서 문자열을 turn에 맞게 심어주고, -> 방문체킹 + turn을 바꾼다.
+       # -> f-string을 활용한다
+       cell = document.getElementById(f'{cell_id}')
+       cell.innerHTML = player1_mark if is_player1 else player2_mark
+   
+       # 15. 방문체킹하고 바뀐 턴을 바꿔준다.
+       board[cell_id] = True
+       # 16. 바뀐 값을 return하여 setter개념으로 바꿔줘야한다..
+   ```
+
+   
+
+5. **턴을 바꾸려면, `전역변수를 갖다쓰지만 않고, 재할당`까지 해줘야하므로 `global`을 쓸 수 밖에 없는 상황이다.**
+
+   ```python
+   def change_turn():
+       global is_player1
+       is_player1 = not is_player1
+   
+   
+   def click_cell(e):
+       # 11. 클릭된 td의 id값을 받아온다. -> 셀의 클릭여부를 알고서, 클릭안된(방문안된) 것만 클릭되게 해야한다.
+       # -> html로만 이루어진다면, class를 심어놓는 등의 작업을 할 수 있다.
+       cell_id = int(e.target.id)
+   
+       # 13. 방문안된 cell일 경우, 현재의 turn에 해당하는 텍스트를 심고, 턴을 바꿔야한다.
+       if not board[cell_id]:
+           mark_cell(cell_id, is_player1)
+           change_turn()
+   ```
+
+   
+
+
+
+
+
