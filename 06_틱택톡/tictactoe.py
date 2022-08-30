@@ -7,11 +7,25 @@ my_table = document.getElementById('my_table')
 # 10. 턴을 위한 전역변수 설정 (각 플레이어turn마다 사용될 문자열들 + turn 불린flag변수)
 player1_mark = 'O'
 player2_mark = 'X'
-is_player1 = True # player1부터 True로 시작된다.
+is_player1 = True  # player1부터 True로 시작된다.
 
 # 12. 2차원행렬의 id를 1차원으로 관리하여,
 #    -> 방문 상태배열을 선언해서 사용할 수 있다.(객체라면 각 셀마다 객체로 관리)
 board = [False] * 9
+# 24. 승리확인시 필요할 튜플 좌표들(1차원 id)을 list로 미리 보유해놓는다.
+# -> 직접 승자check마다 선언해서 확인하는 것보다, [고정된 index쌍]는 미리 선언해놓는다.
+win_list = [
+    (0, 1, 2),  # 가로
+    (3, 4, 5),
+    (6, 7, 8),
+    (0, 3, 6),  # 세로
+    (1, 4, 7),
+    (2, 5, 8),
+    (0, 4, 8),  # 대각
+    (2, 4, 6),
+]
+# 38. 게임종료여부도 전역상태로 관리된다
+is_end = False
 
 
 def mark_cell(cell_id, is_player1):
@@ -21,7 +35,9 @@ def mark_cell(cell_id, is_player1):
     cell.innerHTML = player1_mark if is_player1 else player2_mark
 
     # 15. 방문체킹하고 바뀐 턴을 바꿔준다.
-    board[cell_id] = True
+    # 29. 현재 board칸에 들어간 원소를 True가 아니라 직접적으로 player에 따라 입력한다.
+    # board[cell_id] = True
+    board[cell_id] = player1_mark if is_player1 else player2_mark
     # 16. 바뀐 값을 return하여 setter개념으로 바꿔줘야한다..
 
 
@@ -36,9 +52,28 @@ def click_cell(e):
     cell_id = int(e.target.id)
 
     # 13. 방문안된 cell일 경우, 현재의 turn에 해당하는 텍스트를 심고, 턴을 바꿔야한다.
-    if not board[cell_id]:
+    # if not board[cell_id]:
+    # 37. 방문안된cell이면서 && 게임이 안끝났을때만 클릭되게 한다.
+    if not board[cell_id] and not is_end:
         mark_cell(cell_id, is_player1)
         change_turn()
+
+    # 20. 현재 바뀐 턴을, 알려주는 div에 찍어준다.
+    print_turn_message()
+
+
+def restart_game(e):
+    # 17. 기존 상태 변수들(is_player1, board)을 다 초기화한다.
+    global is_player1
+    is_player1 = True
+
+    for i in range(len(board)):
+        board[i] = False
+        # 18. 화면도 초기화한다.
+        cell = document.getElementById(f'{i}')
+        cell.innerHTML = ''
+
+    print_turn_message()  # 22. 다시할 때도, init_game()처럼 초기화된 turn이 찍혀야한다.
 
 
 def init_game():
@@ -66,6 +101,61 @@ def init_game():
             tr.appendChild(td)
         # 7. td들이 달린 tr들을 table에 append한다.
         my_table.appendChild(tr)
+
+    print_turn_message()  # 21. 최초의 턴도 찍어준다.
+
+
+# 18. turn을 찍어줄 공간을 찾고 -> 메서드를 작성한다.
+print_turn = document.getElementById('print_turn')
+
+
+def check_win():
+    winner = '' # 31.
+
+    # 25. 이제 **board 상태배열 + 확인 튜플좌표 리스트 반복문** 을 통해서 승리하는지 확인한다.
+    # -> 튜플list는 반복문시 for인자에 한개씩 뽑아서 바로 쓸 수 있다.
+    for x, y, z in win_list:
+        # 26. 3개의 원소를 확인하는데, 첫번째가 빈칸이라면, 확인하지 않는다.
+        if not board[x]:
+            continue
+        # 27. 해당좌표가 O든 X든 다 똑같은지 먼저 확인한다. (누군가는 승리)
+        if board[x] == board[y] == board[z]:
+            # 28. 누가 이겼는지 1개 원소로 확인한다. -> 'O' 또는 'X'를 넣어준 상태다.
+            winner = board[x] # board[cell_id] = player1_mark if is_player1 else player2_mark
+            # 30. 승자가 나오면 반복문 break를 걸어주고, 가변변수로서 위에는 None 대신 '' 빈문자열로 초기화
+            #  -> 아래에서 if winner를 return한다.
+            break
+
+    # 32. 승자가 발견되었으면, winner뿐만 아니라 [승리여부인 True]도 같이 return해준다.
+    if winner:
+        return True, winner
+
+    # 33. 승자를 못찾았다면, 아직 [게임이 안끝난 상태]거나 or [비긴 경우]다. (매번 체크된다)
+    # => ( 승자 없는데 )  board상태배열에 빈칸(False)가 존재하면 -> 아직 안끝난 상태다.
+    # => ( 승자 없는데 )  board상태배열에 빈칸(False)이 없으면  -> 비긴 경우다.
+    if False in board:
+        # 34. 아직 안끝났으면 False 및 winner에 빈문자열로 반환한다.
+        return False, ''
+    # 35. (승자없고, 남아있는 칸도 없다면) -> 비긴 경우다. -> 승자 자리에 Tie라고 반환해준다.
+    return True, 'Tie'
+
+
+def print_turn_message():
+    # 39. 게임종료여부는 전역으로 관리되어야한다
+    global is_end
+
+    # 23. 턴 변경 이전에, 승자체크를 해서, 승리한다면 turn 대신 's win으로 출력해줘야한다.
+    is_end, winner = check_win()
+    # 36. 종료되었으면 winner에는 'O' or 'X' (승리) vs  'Tie'(비김)의 2가지 경우가 있다.
+    # -> 삼항연산자로 확인해서 그에 따라 's turn대신 맞는 문자열을 출력해준다.
+    # -> 2가지 경우로 비교를 하는 것보다 Tie인지 아닌지로 판단하면 된다.
+    if is_end:
+        print_turn.innerHTML = f'{winner} Win !!' if winner != 'Tie' else 'Tie !!'
+        return
+
+    turn_message = player1_mark if is_player1 else player2_mark
+    print_turn.innerHTML = turn_message + '\'s turn'
+
 
 # 1. e모듈 정의처럼, 미리 실행되어야할 함수들을 [정의 후 실행까지] 시킨다.
 init_game()

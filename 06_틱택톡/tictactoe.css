@@ -30,3 +30,56 @@ td {
     text-align: center;
     font-weight: bold;
 }
+
+.btn {
+    background: none;
+    border:2px solid black;
+
+    color: black;
+    font-size: 35px;
+    margin: 20px;
+    padding: 20px 40px;
+
+    width: 250px;
+    height: 80px;
+
+    cursor: pointer;
+    position: relative;
+}
+
+.btn-swap span {
+    position: absolute;
+    top: 0;
+    left: 0;
+    /*  이렇게만 주면, span태그 글자가 버튼왼쪽위로 붙는다.*/
+
+    padding: 20px 40px; /* 원래 버튼글자와 padding동일하게 주기*/
+    width: 100%;
+
+    opacity: 0; /* 글자가 투명도0으로 안보이게 한다 -> hover시만 보이게 해야한다*/
+    transition: opacity 0.5s; /*  투명도 전환효과  */
+
+}
+
+.btn-swap:hover span {
+    opacity: 1;
+}
+
+/* 이제, hover겹치는 span을 위해
+   ::before를 통해 content(다시하기) 앞에 width0%로 끼워넣은 것을 -> hover 시 100%를 차지하게 하여 밀어내버린다.
+ */
+.btn-swap::before {
+    content: '';
+    width: 0;
+    transition: width 0.5s;
+    height: 100%;
+
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-color: cornflowerblue;
+}
+.btn-swap:hover::before {
+    width: 100%;
+}
+

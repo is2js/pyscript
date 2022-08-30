@@ -1378,3 +1378,288 @@ td {
 
 
 
+### 재실행을 위한 restart[다시하기]버튼 만들기 for 지속개발
+
+- 다 클릭하고나서, table(행렬)과 매핑된 `방문 상태배열을 초기화`해야지 편하게 개발이 가능하다
+
+
+
+#### css로 hover시 content밀어내기 & span 보이게하기
+
+`button#restart.btn.btn-swap[pys-onClick="restart_game"]{다시하기}`
+
+- hover애니메이션 효과를 위하 **.btn .btn-swap클래스 2개를 주었다.**
+
+- context부분에 **span 진짜? 태그를 추가하여 hover시 나올 텍스트가 되게 한다**
+
+  `다시하기<span>진짜?</span><`
+
+
+
+
+
+`.btn`
+
+```css
+.btn {
+    background: none;
+    border:2px solid black;
+
+    color: black;
+    font-size: 35px;
+    margin: 20px;
+    padding: 20px 40px;
+
+    width: 250px;
+    height: 80px;
+
+    cursor: pointer;
+    position: relative;
+}
+```
+
+
+
+![image-20220830000626075](https://raw.githubusercontent.com/is3js/screenshots/main/image-20220830000626075.png)
+
+
+
+`.btn-swap span`{}
+
+- **span은 투명도0 -> hover시 1로 바뀌게 한다**
+
+```css
+.btn-swap span {
+    position: absolute;
+    top: 0;
+    left: 0;
+    /*  이렇게만 주면, span태그 글자가 버튼왼쪽위로 붙는다.*/
+
+    padding: 20px 40px; /* 원래 버튼글자와 padding동일하게 주기*/
+    width: 100%;
+
+    opacity: 0; /* 글자가 투명도0으로 안보이게 한다 -> hover시만 보이게 해야한다*/
+}
+
+.btn-swap:hover span {
+    opacity: 1;
+}
+```
+
+
+
+
+
+`.btn-swap::before`
+
+- hover시 기존콘텐트인 다시하기를 `hover시 width 0 -> 100%밀어내서 안보이게`한다
+
+```css
+/* 이제, hover겹치는 span을 위해
+   ::before를 통해 content(다시하기) 앞에 width0%로 끼워넣은 것을 -> hover 시 100%를 차지하게 하여 밀어내버린다.
+ */
+.btn-swap::before {
+    content: '';
+    width: 0;
+    height: 100%;
+
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-color: cornflowerblue;
+}
+
+.btn-swap:hover::before {
+    width: 100%;
+}
+```
+
+![image-20220830002241566](https://raw.githubusercontent.com/is3js/screenshots/main/image-20220830002241566.png)
+
+![image-20220830002247558](https://raw.githubusercontent.com/is3js/screenshots/main/image-20220830002247558.png)
+
+
+
+
+
+#### css로 hover시 전환효과 주기
+
+- span은 opacity를 0.5s, before는 width를 0.5s로 transition주면 된다.
+
+![image-20220830003620396](https://raw.githubusercontent.com/is3js/screenshots/main/image-20220830003620396.png)
+
+
+
+### restart e함수 작성하기(상태변수 및 view)
+
+1. py모듈에 init_game()위에 정의해주자
+2. **상태관련 변수들을 모두 초기화한다**
+   1. python - is_player1, board
+   2. html - 각각의 id에 대한 cell
+
+
+
+### turn을 view에 알려주기(click_cell할때마다 바뀐 turn텍스트 찍어주기)
+
+1. turn을 알려줄 빈공간을 만든다.
+
+   - ```
+     div#print_turn.text-2xl
+     ```
+
+2. click_cell내부에서 작동할 python함수를 작성한다.
+
+   1. 고정된 html원소를 찾는 것이므로 함수위에 전역으로 정의해준다.
+   2. 현재의 turn을찍어주는 함수를 작성한다.
+
+3. **`click_cell()`뿐만 아니라, `init_game()`에서도 호출하여 최초의 턴도 찍어준다.**
+
+4. **뿐만 아니라 다시하기인 `restart_game()`에도 호출해야한다. 안하면 다시하기 누른 상태의 turn이 그대로 찍힌다.**
+
+   - init_game()에서 view초기화이외에 **동적인 작업**은, 무조건 restart_game()에서도 해주자
+
+
+
+
+
+### 클릭_셀마다 [turn 메세지 출력]이전에 [승자체크부터 먼저하기] -> check_win()
+
+1. print_turn_message() 내부에서 **turn 출력 이전에 먼저 승자체크하고, 걸리면 turn대신 승자를 출력**하도록 해야한다.
+
+   ```python
+   # 18. turn을 찍어줄 공간을 찾고 -> 메서드를 작성한다.
+   print_turn = document.getElementById('print_turn')
+   def print_turn_message():
+       turn_message = player1_mark if is_player1 else player2_mark
+       # 23. 턴 변경 이전에, 승자체크를 해서, 승리한다면 turn 대신 's win으로 출력해줘야한다.
+       check_win()
+   
+       print_turn.innerHTML = turn_message + '\'s turn'
+   ```
+
+2. **승리확인시 확인해야할 좌표들(1차원 id)을 `튜플 좌표 리스트`로 미리 전역변수로 선언해놓자.**
+
+   - 확인시 해당좌표들에 같은 값이 들어있는지 확인해야한다.
+
+   ```python
+   win_list = [
+       (0, 1, 2),  # 가로
+       (3, 4, 5),
+       (6, 7, 8),
+       (0, 3, 6),  # 세로
+       (1, 4, 7),
+       (2, 5, 8),
+       (0, 4, 8),  # 대각
+       (2, 4, 6),
+   ]
+   ```
+
+3. 이제 **board 상태배열 + 확인 튜플좌표 리스트 반복문** 을 통해서 승리하는지 확인한다.
+
+   1. **3개의 원소를 확인**하는데, **첫번째가 빈칸이라면, 확인하지 않는다.**
+
+   2. 해당좌표가 O든 X든  **3개 원소가 다 똑같은지 먼저 확인**한다. (누군가는 승리)
+
+   3. **이제 board상태배열에서 누가 이긴상태인지 알아야하는데, `현재는 방문배열로서 True`로만 기록했었다.**
+
+      - **board에 False -> 방문시 True가 아니라 `방문시 해당 marker`를 집어넣어놓고, `3원소가 같은 것이 누구인지 확인`해야할 필요가 있다.**
+
+      ```python
+      # board[cell_id] = True
+      board[cell_id] = player1_mark if is_player1 else player2_mark
+      ```
+
+   4. **승리한 사람이 발견되면, winner뿐만 아니라 `True`의 `게임 종료여부`도 반환한다**
+
+      - **그 이유는 `비긴 경우(종료, True)`이외에 `아직 게임안끝난 경우(False)`도 알려줘야하기 때문이다.**
+
+   ```python
+   def check_win():
+       winner = '' # 31.
+   
+       # 25. 이제 **board 상태배열 + 확인 튜플좌표 리스트 반복문** 을 통해서 승리하는지 확인한다.
+       # -> 튜플list는 반복문시 for인자에 한개씩 뽑아서 바로 쓸 수 있다.
+       for x, y, z in win_list:
+           # 26. 3개의 원소를 확인하는데, 첫번째가 빈칸이라면, 확인하지 않는다.
+           if not board[x]:
+               continue
+           # 27. 해당좌표가 O든 X든 다 똑같은지 먼저 확인한다. (누군가는 승리)
+           if board[x] == board[y] == board[y]:
+               # 28. 누가 이겼는지 1개 원소로 확인한다. -> 'O' 또는 'X'를 넣어준 상태다.
+               winner = board[x] # board[cell_id] = player1_mark if is_player1 else player2_mark
+               # 30. 승자가 나오면 반복문 break를 걸어주고, 가변변수로서 위에는 None 대신 '' 빈문자열로 초기화
+               #  -> 아래에서 if winner를 return한다.
+               break
+   
+       if winner:
+           # 32. 승자가 발견되었으면, winner뿐만 아니라 [승리여부인 True]도 같이 return해준다.
+           return True, winner
+   ```
+
+4. **check_win()은 기본적으로 winner뿐만 아니라 `게임 끝났는지 여부`를 boolean으로 반환한다**
+
+   1. 승리조건에 부합하는 경우 -> True(게임종료), winner
+   2. **승리아닌데, board상태배열에 빈칸이 있는 경우 -> `False(게임진행중), ''`**
+   3. **승리도 아니고, board에 빈칸이 없는 경우 -> `True(비김), 'Tie'`를 반환해준다**
+
+   ```python
+   # 32. 승자가 발견되었으면, winner뿐만 아니라 [승리여부인 True]도 같이 return해준다.
+   if winner:
+       return True, winner
+   
+   # 33. 승자를 못찾았다면, 아직 [게임이 안끝난 상태]거나 or [비긴 경우]다. (매번 체크된다)
+   # => ( 승자 없는데 )  board상태배열에 빈칸(False)가 존재하면 -> 아직 안끝난 상태다.
+   # => ( 승자 없는데 )  board상태배열에 빈칸(False)이 없으면  -> 비긴 경우다.
+   if False in board:
+       # 34. 아직 안끝났으면 False 및 winner에 빈문자열로 반환한다.
+       return False, ''
+   # 35. (승자없고, 남아있는 칸도 없다면) -> 비긴 경우다. -> 승자 자리에 Tie라고 반환해준다.
+   return True, 'Tie'
+   ```
+
+   
+
+5. 이제 다시 print_turn_message() 로 넘와서 `게임종료여부, 정보`를 반환받아서 다르게 출력하는 경우를 처리해준다.
+
+   ```python
+   def print_turn_message():
+       # 23. 턴 변경 이전에, 승자체크를 해서, 승리한다면 turn 대신 's win으로 출력해줘야한다.
+       is_end, winner = check_win()
+       # 36. 종료되었으면 winner에는 'O' or 'X' (승리) vs  'Tie'(비김)의 2가지 경우가 있다.
+       # -> 삼항연산자로 확인해서 그에 따라 's turn대신 맞는 문자열을 출력해준다.
+       # -> 2가지 경우로 비교를 하는 것보다 Tie인지 아닌지로 판단하면 된다.
+       if is_end:
+           print_turn.innerHTML = f'{winner} Win !!' if winner != 'Tie' else 'Tie !!'
+           return
+       
+       turn_message = player1_mark if is_player1 else player2_mark    
+       print_turn.innerHTML = turn_message + '\'s turn'
+   ```
+
+
+
+
+
+### 승자데이터가 차게되면, 더이상 진행 게임안되게 하기
+
+1. click_cell()이 가능한 경우는 아직 board[id]가 False상태일 때이다. -> **게임이 아직 안끝났을 때도 추가한다**
+
+   ![image-20220830172738770](https://raw.githubusercontent.com/is3js/screenshots/main/image-20220830172738770.png)
+
+2. **그렇다면 `is_end는 global 전역상태변수`로 관리되어야한다**
+
+   ![image-20220830172907432](https://raw.githubusercontent.com/is3js/screenshots/main/image-20220830172907432.png)
+
+   
+
+3. **check_win()이 반환하는 값은, 전역상태변수를 업데이트해야한다.**
+
+   ![image-20220830173002463](https://raw.githubusercontent.com/is3js/screenshots/main/image-20220830173002463.png)
+
+
+
+4. **restart_game 등에서는 `다시 초기화해줄 필요 없다`**
+   - **check_win()은 `click_cell()내부에서 이미 클릭후 처음 작동`하므로**
+     - **`restart_game(is_end==True)`->  `빈셀로 초기화` -> `내부 print_turn_message` -> `check_win()시 빈셀(html+board)로 업데이트` ->  `is_end == False로 업데이트`됨**
+     - **즉, restart_game속  `board초기화 -> check_win()`으로 인해  자동으로 False상태가 되어있다.**
+
