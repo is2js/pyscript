@@ -20,6 +20,10 @@
 <body>
     <div class="m-auto text-center font-bold text-3xl">
         <h1 id="header">Pyscript TicTacToe!</h1>
+        <div id="radio" class="text-xl font-light">
+            <input type="radio" name="check-radio" id="ai" value="ai" pys-onClick="restart_game"> 1 Player
+            <input type="radio" name="check-radio" id="human" value="human" pys-onClick="restart_game" checked> 2 Player
+        </div>
         <div id="print_turn" class="text-2xl"></div>
         <table id="my_table"></table>
         <button id="restart" class="btn btn-swap" pys-onClick="restart_game">다시하기<span>진짜?</span></button>

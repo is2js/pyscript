@@ -1663,3 +1663,397 @@ td {
      - **`restart_game(is_end==True)`->  `빈셀로 초기화` -> `내부 print_turn_message` -> `check_win()시 빈셀(html+board)로 업데이트` ->  `is_end == False로 업데이트`됨**
      - **즉, restart_game속  `board초기화 -> check_win()`으로 인해  자동으로 False상태가 되어있다.**
 
+### 코드 수정(전역변수는 파라미터orReturn값으로 주지말자)
+
+- 전역변수 is_player1을 mark_cell()**인자로 받지말고**, **global로 쓰되, return안하도록 수정**
+
+  ```python
+  # def mark_cell(cell_id, is_player1):
+  # 40. 전역변수는 파라미터로 받지말고 return도 하지말자
+  def mark_cell(cell_id):
+      global is_player1
+  ```
+
+
+
+### 모드 설정을 위한 radio만들기(2player 기본 checked)
+
+1. input radio들이 들어갈 div공간 만들기
+
+   `div#radio.text-xl.font-light`
+
+2. input으로 radio들을 만든다. type만 radio를, **각각의 radio들은 모두 같은name으로 1개의 데이터만 택1된다.**
+
+   - name뿐만 아니라 id, value, pys-onClick값도 주는데 각각 다르게 준다.
+
+   - **같은 부분은 아래와 같이 생성한다.**
+
+     `input:radio[name='check-radio']`
+
+   - **모드를 선택할때마다 `restart_game`이 실행되어야한다. `pys-onClick`으로 주자**
+
+     ```html
+     <input type="radio" name="check-radio" id="ai" value="ai" pys-onClick="restart_game"> 1 Player
+     ```
+
+3. 1개의 input을 복사한 뒤, id와value값만 다르게 준다.
+
+   - **기본 체크되어있도록 태그끝에 `checked`를 준다.**
+
+   ```html
+   <input type="radio" name="check-radio" id="human" value="human" pys-onClick="restart_game" checked> 2 Player
+   ```
+
+4. **`모드를 결정하는 radio는 클릭시마다 restart`해줘야하는 것을 생각하자.**
+
+```html
+<div id="radio" class="text-xl font-light">
+    <input type="radio" name="check-radio" id="ai" value="ai" pys-onClick="restart_game"> 1 Player
+    <input type="radio" name="check-radio" id="human" value="human" pys-onClick="restart_game" checked> 2 Player
+</div>
+```
+
+
+
+### 모드설정을 위한 모듈 수정
+
+1. 2명의 player(O, X)에 대해, **1player선택시 -> player1 = human / player2 =ai를 담당하게 한하기 위해, mark를 human, ai변수에도 할당해준다.**
+
+   ```python
+   # 41. 1인용일 때, 각 mark를 human, ai에게도 배정한다.
+   player1_mark = human = 'O'
+   player2_mark = ai = 'X'
+   ```
+
+   
+
+2. **radio에 체크되어있는 것을 확인하기 위해 , 2개의 input태그를 일단 가져와야한다.**
+
+   - **가져온 radio태그는 `vs_ai.checked`를 통해 체크여부를 확인할 수 있다.**
+
+   ```python
+   # 42. radio에 체크되어있는 것을 확인하기 위해 , 2개의 input태그를 일단 가져와야한다.
+   vs_ai = document.getElementById('ai')
+   vs_human = document.getElementById('human')
+   ```
+
+   
+
+3. **click_cell을 했을 때**
+
+   1. 기존: 빈칸이면서 && 게임이 안끝났을 경우-> 마킹mark_cell + 턴 변경change_turn했었다.
+   2. **변경: 빈칸 && 승자없을경우 -> 마킹mark_cell을 한 뒤 -> `턴을 바꿔야하는데`**
+      1. **`현재 1인용으로서 as radio.checked` && `turn이 ai(is_player1=False)` && `게임안끝났다면`** -> **`change_turn대신 ai_turn으로 넘긴다.`**
+   3. **not is_end를 2번 검사하게 되는데, `player1(human)`에 의해 게임이 먼저 종료될 수 있기 때문이다.**
+      - 현재는 player1 mark_cell & change_turn 이후 **print전 게임종료확인 로직은 없는 상태다.**
+      - **일단 나중에 수정하기로 하고, `ai_turn()으로 넘어오기 전에 게임 종료됬는지 확인검사 로직`만 넣어준다.**
+
+   ```python
+   def click_cell(e):
+       # 11. 클릭된 td의 id값을 받아온다. -> 셀의 클릭여부를 알고서, 클릭안된(방문안된) 것만 클릭되게 해야한다.
+       # -> html로만 이루어진다면, class를 심어놓는 등의 작업을 할 수 있다.
+       cell_id = int(e.target.id)
+   
+       # 13. 방문안된 cell일 경우, 현재의 turn에 해당하는 텍스트를 심고, 턴을 바꿔야한다.
+       # if not board[cell_id]:
+       # 37. 방문안된cell이면서 && 게임이 안끝났을때만 클릭되게 한다.
+       if not board[cell_id] and not is_end:
+           mark_cell(cell_id)
+           change_turn()
+           # 42. 턴을 바꾼 뒤, player2 대신 ai의 턴(ai checkd & is_player1 False)이라면
+           # -> 넘어가지 말고 직접 두도록 하게해야한다.
+           # -> 추가로 게임이 종료된 상태가 아니여야한다.(player1에 turn에서 게임 종료될 수 있다)
+           # => player1으로 print되기 전에 이미 승자여부 판단짓는 로직은 있다가 처리한다.
+           if vs_ai.checked and not is_player1 and not is_end:
+               ai_turn()
+   
+       # 20. 현재 바뀐 턴을, 알려주는 div에 찍어준다.(승자여부도 여기서 확인하는 중)
+       print_turn_message()
+   ```
+
+
+
+### ai_turn()을 처리하기 with minimax 알고리즘
+
+#### ai가 랜덤한 1개칸만 선택해서 mark_cell + change_turn 하게하고 테스트하기
+
+1. mark_cell하고 change_turn은 항상 같이 움직여야한다. **통합 메서드 mark_cell_and_change_turn**을 만들어주고 mark_cell을 대체한다.
+
+2. **현재 board에서 빈칸을 찾고, 1개를 랜덤하게 고른 뒤, 그 spot에 mark_cell_and_change_turn하게 해서 테스트한다.**
+
+   ```python
+   def ai_turn():
+       # 43. ai가 두기 위해서는 빈셀부터 먼저 찾아야한다.
+       # -> 빈셀들의 위치 를확인하기 위해서는, tuple()로 만들어준다.(변하지 않는 값)
+       empty_spots = tuple(index for index, cell in enumerate(board) if not cell)
+       # 44. 빈칸 중 랜덤하게 1칸만 가져온다.
+       spot = random.choice(empty_spots)
+       # 45. 랜덤한 빈칸 1개를 mark_cell로 칠해준다. -> 1 Player모드로 한번 두고, 랜덤으로 1개를 칠하는지 확인한다.
+       mark_cell_and_change_turn(spot)
+   ```
+
+   
+
+![image-20220901125550304](https://raw.githubusercontent.com/is3js/screenshots/main/image-20220901125550304.png)
+
+#### 테스트 후 랜덤한 1개 빈칸(spot)이 아니라, best spot을 찾는 알고리즘 적용하기
+
+1. 기존 랜덤으로 고르는 것을 주석처리하고, 메서드로 반환하게 자리를 잡는다.
+
+   ![image-20220901130537878](https://raw.githubusercontent.com/is3js/screenshots/main/image-20220901130537878.png)
+
+2. best_move()는 일단 **빈칸을 찾아, board의 상태 마킹만 한다.**
+
+   - mark_cell()은  html마킹 + board마킹
+   - **현재는 board만 마킹만 하면서, `마킹할때마다 매번 minimax(board, False)`로 score를 매번 확인한 뒤, `복구하면서, 택1의 score가 가장 높은 곳을 greedy로 탐색`한다.**
+
+   ```python
+   def best_move():
+       best_score = float('-inf')
+       spot = None
+       for i, cell in enumerate(board):
+           if not cell:
+               # 45. 모든 빈셀을 찾을때마다 마킹해서 score를 계산한 뒤, 복구한다.
+               board[i] = ai
+               score = minimax(board, False)
+               board[i] = False
+               # 46. 만약 더 좋은 점수를 내었따면, 점수와 그 때의 원소를 저장한다.
+               if best_score < score:
+                   best_score = score
+                   spot = i
+       # 47. 찾은 best_score의 spot를 반환한다.
+       return spot
+   ```
+
+
+
+#### 미니맥스 알고리즘 작성 개념
+
+- backtracking의 한 부분이다.
+- 컴퓨터가 이길 경우 1점
+- 플레이어가 이길 경우 -1점
+- 승자가 없는 경우 0점(비긴 경우)
+  - 각 경우마다 남은턴수를 곱하면 더 좋은 모델이 된다.
+
+
+
+1. player가 먼저 수를 두면 -> ai는 자신이 둘 수 있는 모든 경우의 수를 둔다.
+
+   ![image-20220901132157568](https://raw.githubusercontent.com/is3js/screenshots/main/image-20220901132157568.png)
+
+2. 다음으로 ai는 player가 둘 수 있는 수도 모두 둔다.
+
+   ![image-20220901134320205](https://raw.githubusercontent.com/is3js/screenshots/main/image-20220901134320205.png)
+
+3. **이 때, 컴퓨터는 `자신의 최선의 수인 max score`를 player turn에서는 `플레이어가 최선의 수를 둔 컴퓨터min score`를 만들게 한다.**
+
+
+
+
+
+4. O의 차례라고 가정하자. -> 4 , 6, 9의 위치에 둘 수 있다. -> 아직 개임이 끝나진 않았다.
+
+   ![image-20220901134524004](https://raw.githubusercontent.com/is3js/screenshots/main/image-20220901134524004.png)
+
+5. **결국 게임이 종료(승리, 패배, 비김)될 때까지 다 둔다.**
+
+   1. 빠르게 이기는 것이 더 좋은 점수를 가지게 하기 위해, 남은턴수를 곱해줄 수 있다.
+      1. 여기서는 다루지 않는다.
+
+   ![image-20220901134704897](https://raw.githubusercontent.com/is3js/screenshots/main/image-20220901134704897.png)
+
+
+
+6. **마지막 수로 인해 결론이 난 부분에서는 `컴퓨터의max로서 1가지 경우 밖에 없으므로 점수를 그대로 올려주면서 백트래킹`한다.**
+
+   ![image-20220901134821976](https://raw.githubusercontent.com/is3js/screenshots/main/image-20220901134821976.png)
+
+   
+
+7. 그 전단계에서는 **`플레이어의 최선의수로인한 mini전략`으로서 `가장 점수가 낮은 것을 집계`하여 올려준다.**
+
+   ![image-20220901134904015](https://raw.githubusercontent.com/is3js/screenshots/main/image-20220901134904015.png)
+
+   ![image-20220901134914592](https://raw.githubusercontent.com/is3js/screenshots/main/image-20220901134914592.png)
+
+8. 그 전단계는 컴퓨터turn으로 max를 올려준다.
+
+   ![image-20220901134940328](https://raw.githubusercontent.com/is3js/screenshots/main/image-20220901134940328.png)
+
+9. **컴퓨터 입장에서는 4번을 두는 것이 가장 유리하다. 6, 9번은 player가 승리할 수 있어서 안좋은 전략이다.**
+
+   ![image-20220901135100824](https://raw.githubusercontent.com/is3js/screenshots/main/image-20220901135100824.png)
+
+   - 4번을 두게되면, 비기거나 이길 수 있어서 좋다.
+
+10. 총 경우의 수는 9!로 엄청난 연산이 필요하다.
+
+    - **그러므로 깊이를 정해서 일정 수준까지만 경우의수를 확인해야한다.**
+    - **지금은 9번 깊이(9!)므로 다 한다.**
+    - **여기에 알파베타알고리즘으로 필요없는 가지를 줄여 연산량을 줄일 수 도 있다.**
+      - 여기도 생략
+
+
+
+
+
+### 미니맥스알고리즘 작성
+
+#### minimax(board상태배열, depth마다바뀌는turn을 알려주는 flag(boolean))
+
+1. 결과적으로 humanTurn(flag-False)으로 게임에 대한 node가 시작되며, 최종적으로는 i에 ai가 둘 때 나타날 수 있는 경우의수를 다 고려한 뒤, best_score를 반환해줄것이다.
+
+   - 모든 cell마다 best_score를 계산한 뒤, 그 best_socre를 만들어내는 i(spot)을 찾는 것이다.
+
+   ```python
+   def best_move():
+       best_score = float('-inf')
+       spot = None
+       for i, cell in enumerate(board):
+           if not cell:
+               # 45. 모든 빈셀을 찾을때마다 마킹해서 score를 계산한 뒤, 복구한다.
+               board[i] = ai
+               score = minimax(board, False)
+               board[i] = False
+               # 46. 만약 더 좋은 점수를 내었따면, 점수와 그 때의 원소를 저장한다.
+               if best_score < score:
+                   best_score = score
+                   spot = i
+       # 47. 찾은 best_score의 spot를 반환한다.
+       return spot
+   ```
+
+   
+
+2. **minimax는 재귀로서 node를 뻗으며, depth마다 turn이 달라지는 업데이트변수를 파라미터로 가지고 있다.**
+
+   ```python
+   def minimax(is_ai_turn):
+   ```
+
+   
+
+3. 종착역은 check_win()을 통해, 반환되는 is_end, winner 중 is_end가 True로 게임이 끝났을 때이다.
+
+   - 종착역에서는 winner변수에 담긴 승자(O or X의 marker)에 따라 점수를 매핑하여 반환한다.
+
+     - winner가 player1marker=  human = 'O'인 경우, -1점
+     - player2_maker = ai = 'X'인 경우, 1점
+     - 'Tie'로서 비긴 경우, 0점을 주게 한다.
+
+   - **marker(winner)별 점수매핑은 dict로 한다.**
+
+     ```python
+     def minimax(is_ai_turn):
+         # 48. 현재 ai가 놓은 상태에서 check_win()으로 승패부터 판단한다.
+         # -> 가정이므로 전역변수 is_end대신 is_simulation_end로 대신 받는다.
+         is_simulation_end, winner = check_win()
+     
+         # 49. 경기가 종료된 상태라면, dict score에 매핑된 점수를 반환해준다.
+         if is_simulation_end:
+             return scores[winner]
+     ```
+
+     ```python
+     # 50. marker가 들어가 있는 변수로 매핑해준다. 컴터가 이기면 +1, 사람이기면 -1, 비기면0
+     scores = {
+         ai: 1,
+         human: -1,
+         'Tie': 0,
+     }
+     ```
+
+     - **이렇게 결과 변수별, 매핑은 dict를 두고 한다.**
+
+4. **depth별 2가지 양상으로 자식node들을 뻗어서, player별 다르게 자식node들을 뻗어야한다.**
+
+   - 이 때, backtracking이라면, 상태배열을 깊은복사하는 파라미터로 들고 있지 않아도 된다.(원상복구)
+   - **파라미터 속 depth별 player여부(is_ai_turn)을 확인**하여 **각각 다르게 자식node들을 뻗**어나간다.
+     - **`현재 depth정보는 flag변수를 두어 알려준다.`**
+   - 종착역을 제외한 현재재귀에서는 **자식node들값을 1개로 집계하여 반환하는데, ai는 max값을 가진 node를, human은 min값을 가진 node의  반환값을 1개로 집계하여 반환해줘야한다.**
+     - ai_turn일때는... max알고리즘으로서, 자식node들이 반환해주는 score중 가장 높은 값을 선택한다.
+     - human_turn(맨 처음 포함)일 때는, **`컴퓨터입장에서는 [human이 잘하여] 지거나 -1, 비기는 0 것을 고르도록`mini알고리즘을으로서**, 자식node들이 반환해주는 score중 가장 낮은 값을 선택하여 반환한다.
+       - **각 자식들은 반대Flag로 넘겨서 자식들을 호출해야한다.**
+   - **결국**
+
+   ```python
+   def minimax(is_ai_turn):
+       # 48. 현재 ai가 놓은 상태에서 check_win()으로 승패부터 판단한다.
+       # -> 가정이므로 전역변수 is_end대신 is_simulation_end로 대신 받는다.
+       is_simulation_end, winner = check_win()
+   
+       # 49. 경기가 종료된 상태라면, dict score에 매핑된 점수를 반환해준다.
+       if is_simulation_end:
+           return scores[winner]
+   
+       # 51. default사람차례에 호출되어, False로 들어가있는 is_ai_turn이 True로 바뀐 경우
+       # -> ai가 두는 것을 처리해야한다.
+       # 일단 pass로 두고 human_turn일때를 처리한다.
+       if is_ai_turn:
+           # 54. 반대로 ai turn에서는, 종착역에서 반환하는 것중 max만 가진다.
+           best_score = float('-inf')
+           for i, cell in enumerate(board):
+               if not cell:
+                   board[i] = ai
+                   score = minimax(False)  # turn은 담턴으로서, 반대로 돌려준다.
+                   board[i] = False
+                   best_score = max(best_score, score)
+       else:
+           best_score = float('inf')
+           # 52. 사람의 턴에서는, 빈칸을 찾아돌면서, human marker를 둔체로 점수를 확인한다.
+           # -> 여러 경우의 수를 재귀로 구현한다. 종착역은 겜 끝날때다.
+           for i, cell in enumerate(board):
+               if not cell:
+                   board[i] = human
+                   score = minimax(True)  # turn은 담턴으로서, 반대로 돌려준다.
+                   board[i] = False
+                   # 53. 종착역(게임 종료)에서 반환된 점수를 바탕으로 human이 이겼을 때, 가장 작은값을 찾는다.
+                   best_score = min(best_score, score)
+   
+       # 55. boolean변경으로 매depth마다 서로 다르게 처리하여 반환된 best_score를 반환한다.
+       # -> 종착역에서는 승자의node에서 1개만 점수만 반환되지만,
+       # -> 그 직전엔 여러node들이 뻗어나가는 상황이며, 그 node들 중 best_score 1개로만 집계하여
+       # -> 그 score값만 반환된다.(자식node들 집계를 greedy로 시행)
+       # => 여러node의 집계를 반복문 + greedy로 구현한 best_score를 반환
+       return best_score
+   ```
+
+   
+
+5. **각 빈셀마다 ai가 놓을 때의 best_score를 반환하는데, 그것도 바깥에서 greedy를 통해 가장 높은 점수의 빈셀을 찾아서, 처리하게 하니 테스트를 해본다.** 
+
+   - greedy로 시작해 계속 greedy로 진행된다.
+   - **주체가 달라지는 것은 flag변수를 재귀에 달아서, detph마다 다르게 처리한다.**
+   - **주체마다 자식들의 max를 뽑을지(ai), min을 뽑을지(human)다른 것이 자신의 처리다.**
+
+   ```python
+   def best_move():
+       best_score = float('-inf')
+       spot = None
+       for i, cell in enumerate(board):
+           if not cell:
+               # 45. 모든 빈셀을 찾을때마다 마킹해서 score를 계산한 뒤, 복구한다.
+               board[i] = ai
+               score = minimax(False) # ai가 두고, human차례로서 해당depth는 human(컴퓨터는 mini)로 놓게 한다.
+               board[i] = False
+               # 46. 만약 더 좋은 점수를 내었따면, 점수와 그 때의 원소를 저장한다.
+               if best_score < score:
+                   best_score = score
+                   spot = i
+       # 47. 찾은 best_score의 spot를 반환한다.
+       return spot
+   ```
+
+   
+
+### 내가 A/S
+
+#### ai가 연달아서 바로 두기 전에, 종료체크(check_win())까지 하고 진입하자. 만약, 종료되었으면 밑에 기본print_turn_message()가 알아서 해줄 것이다.
+
+```python
+# if vs_ai.checked and not is_player1 and not is_end:
+#     ai_turn()
+if not check_win()[0] and vs_ai.checked and not is_player1:
+    ai_turn()
+```
+

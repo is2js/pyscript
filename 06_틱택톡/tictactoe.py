@@ -1,3 +1,5 @@
+import random
+
 from js import document
 from pyodide import create_proxy
 
@@ -5,8 +7,11 @@ from pyodide import create_proxy
 my_table = document.getElementById('my_table')
 
 # 10. 턴을 위한 전역변수 설정 (각 플레이어turn마다 사용될 문자열들 + turn 불린flag변수)
-player1_mark = 'O'
-player2_mark = 'X'
+# player1_mark = 'O'
+# player2_mark = 'X'
+# 41. 1인용일 때, 각 mark를 human, ai에게도 배정한다.
+player1_mark = human = 'O'
+player2_mark = ai = 'X'
 is_player1 = True  # player1부터 True로 시작된다.
 
 # 12. 2차원행렬의 id를 1차원으로 관리하여,
@@ -27,8 +32,15 @@ win_list = [
 # 38. 게임종료여부도 전역상태로 관리된다
 is_end = False
 
+# 42. radio에 체크되어있는 것을 확인하기 위해 , 2개의 input태그를 일단 가져와야한다.
+vs_ai = document.getElementById('ai')
+vs_human = document.getElementById('human')
 
-def mark_cell(cell_id, is_player1):
+
+# def mark_cell(cell_id, is_player1):
+# 40. 전역변수는 파라미터로 받지말고 return도 하지말자
+def mark_cell(cell_id):
+    global is_player1
     # 14. 현재cell_id의 td를 찾아서 문자열을 turn에 맞게 심어주고, -> 방문체킹 + turn을 바꾼다.
     # -> f-string을 활용한다
     cell = document.getElementById(f'{cell_id}')
@@ -46,6 +58,90 @@ def change_turn():
     is_player1 = not is_player1
 
 
+# 44. 같이 따라다니는 2개를 묶은 통합메서드를 만들어준다.
+def mark_cell_and_change_turn(cell_id):
+    mark_cell(cell_id)
+    change_turn()
+
+
+# 50. marker가 들어가 있는 변수로 매핑해준다. 컴터가 이기면 +1, 사람이기면 -1, 비기면0
+scores = {
+    ai: 1,
+    human: -1,
+    'Tie': 0,
+}
+
+
+def minimax(is_ai_turn):
+    # 48. 현재 ai가 놓은 상태에서 check_win()으로 승패부터 판단한다.
+    # -> 가정이므로 전역변수 is_end대신 is_simulation_end로 대신 받는다.
+    is_simulation_end, winner = check_win()
+
+    # 49. 경기가 종료된 상태라면, dict score에 매핑된 점수를 반환해준다.
+    if is_simulation_end:
+        return scores[winner]
+
+    # 51. default사람차례에 호출되어, False로 들어가있는 is_ai_turn이 True로 바뀐 경우
+    # -> ai가 두는 것을 처리해야한다.
+    # 일단 pass로 두고 human_turn일때를 처리한다.
+    if is_ai_turn:
+        # 54. 반대로 ai turn에서는, 종착역에서 반환하는 것중 max만 가진다.
+        best_score = float('-inf')
+        for i, cell in enumerate(board):
+            if not cell:
+                board[i] = ai
+                score = minimax(False)  # turn은 담턴으로서, 반대로 돌려준다.
+                board[i] = False
+                best_score = max(best_score, score)
+    else:
+        best_score = float('inf')
+        # 52. 사람의 턴에서는, 빈칸을 찾아돌면서, human marker를 둔체로 점수를 확인한다.
+        # -> 여러 경우의 수를 재귀로 구현한다. 종착역은 겜 끝날때다.
+        for i, cell in enumerate(board):
+            if not cell:
+                board[i] = human
+                score = minimax(True)  # turn은 담턴으로서, 반대로 돌려준다.
+                board[i] = False
+                # 53. 종착역(게임 종료)에서 반환된 점수를 바탕으로 human이 이겼을 때, 가장 작은값을 찾는다.
+                best_score = min(best_score, score)
+
+    # 55. boolean변경으로 매depth마다 서로 다르게 처리하여 반환된 best_score를 반환한다.
+    # -> 종착역에서는 승자의node에서 1개만 점수만 반환되지만,
+    # -> 그 직전엔 여러node들이 뻗어나가는 상황이며, 그 node들 중 best_score 1개로만 집계하여
+    # -> 그 score값만 반환된다.(자식node들 집계를 greedy로 시행)
+    # => 여러node의 집계를 반복문 + greedy로 구현한 best_score를 반환
+    return best_score
+
+
+def best_move():
+    best_score = float('-inf')
+    spot = None
+    for i, cell in enumerate(board):
+        if not cell:
+            # 45. 모든 빈셀을 찾을때마다 마킹해서 score를 계산한 뒤, 복구한다.
+            board[i] = ai
+            score = minimax(False) # ai가 두고, human차례로서 해당depth는 human(컴퓨터는 mini)로 놓게 한다.
+            board[i] = False
+            # 46. 만약 더 좋은 점수를 내었따면, 점수와 그 때의 원소를 저장한다.
+            if best_score < score:
+                best_score = score
+                spot = i
+    # 47. 찾은 best_score의 spot를 반환한다.
+    return spot
+
+
+def ai_turn():
+    # 43. ai가 두기 위해서는 빈셀부터 먼저 찾아야한다.
+    # -> 빈셀들의 위치 를확인하기 위해서는, tuple()로 만들어준다.(변하지 않는 값)
+    # empty_spots = tuple(index for index, cell in enumerate(board) if not cell)
+    # 44. 빈칸 중 랜덤하게 1칸만 가져온다.
+    # spot = random.choice(empty_spots)
+    # 45. 랜덤한 빈칸 1개를 mark_cell로 칠해준다. -> 1 Player모드로 한번 두고, 랜덤으로 1개를 칠하는지 확인한다.
+    # 46. 랜덤대신 best_move()의 결과로 찾은 최적의 spot에 마킹하도록 한다.
+    spot = best_move()
+    mark_cell_and_change_turn(spot)
+
+
 def click_cell(e):
     # 11. 클릭된 td의 id값을 받아온다. -> 셀의 클릭여부를 알고서, 클릭안된(방문안된) 것만 클릭되게 해야한다.
     # -> html로만 이루어진다면, class를 심어놓는 등의 작업을 할 수 있다.
@@ -55,10 +151,22 @@ def click_cell(e):
     # if not board[cell_id]:
     # 37. 방문안된cell이면서 && 게임이 안끝났을때만 클릭되게 한다.
     if not board[cell_id] and not is_end:
-        mark_cell(cell_id, is_player1)
-        change_turn()
+        mark_cell_and_change_turn(cell_id)
+        # 42. 턴을 바꾼 뒤, player2 대신 ai의 턴(ai checkd & is_player1 False)이라면
+        # -> 넘어가지 말고 직접 두도록 하게해야한다.
+        # -> 추가로 게임이 종료된 상태가 아니여야한다.(player1에 turn에서 게임 종료될 수 있다)
+        # => player1으로 print되기 전에 이미 승자여부 판단짓는 로직은 있다가 처리한다.
 
-    # 20. 현재 바뀐 턴을, 알려주는 div에 찍어준다.
+        # 56. change_turn으로 턴을 넘겨받았지만 (not is_player1)
+        # -> is_end정보는 업데이트 되지 않은 상태이다.
+        # -> is_end 업데이트 후 클릭안되게 + 종료메세지느 모두 print_turn_message()에 포함되어있다.
+        # -> 가만히 두면, 체크되지만, ai차례라면, ai가 두기 전에, 종료여부가 확인되어야한다.
+        # if vs_ai.checked and not is_player1 and not is_end:
+        #     ai_turn()
+        if not check_win()[0] and vs_ai.checked and not is_player1:
+            ai_turn()
+
+    # 20. 현재 바뀐 턴을, 알려주는 div에 찍어준다.(승자여부도 여기서 확인하는 중)
     print_turn_message()
 
 
@@ -110,7 +218,7 @@ print_turn = document.getElementById('print_turn')
 
 
 def check_win():
-    winner = '' # 31.
+    winner = ''  # 31.
 
     # 25. 이제 **board 상태배열 + 확인 튜플좌표 리스트 반복문** 을 통해서 승리하는지 확인한다.
     # -> 튜플list는 반복문시 for인자에 한개씩 뽑아서 바로 쓸 수 있다.
@@ -121,7 +229,7 @@ def check_win():
         # 27. 해당좌표가 O든 X든 다 똑같은지 먼저 확인한다. (누군가는 승리)
         if board[x] == board[y] == board[z]:
             # 28. 누가 이겼는지 1개 원소로 확인한다. -> 'O' 또는 'X'를 넣어준 상태다.
-            winner = board[x] # board[cell_id] = player1_mark if is_player1 else player2_mark
+            winner = board[x]  # board[cell_id] = player1_mark if is_player1 else player2_mark
             # 30. 승자가 나오면 반복문 break를 걸어주고, 가변변수로서 위에는 None 대신 '' 빈문자열로 초기화
             #  -> 아래에서 if winner를 return한다.
             break
